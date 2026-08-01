@@ -8,7 +8,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/Users/skan/Documents/Projects/gmail-labeler/.venv/bin/python</string>
-        <string>/Users/skan/Documents/Projects/gmail-labeler/labeler.py</string>
+        <string>/Users/skan/Documents/Projects/gmail-labeler/personal/labeler.py</string>
         <string>--apply</string>
     </array>
     <key>WorkingDirectory</key>
@@ -23,8 +23,8 @@
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler/labeler.log</string>
+    <string>/Users/skan/Documents/Projects/gmail-labeler/personal/labeler.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler/labeler.err.log</string>
+    <string>/Users/skan/Documents/Projects/gmail-labeler/personal/labeler.err.log</string>
 </dict>
 </plist>

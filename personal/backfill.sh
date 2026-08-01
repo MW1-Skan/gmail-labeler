@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 
 AFTER="${1:-2025/10/05}"
 CHUNK="${2:-500}"
-PY=.venv/bin/python
+PY=../.venv/bin/python
 LOG=backfill.log
 
 run=1

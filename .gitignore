@@ -1,6 +1,13 @@
-credentials.json
-client_secret_*.json
-token.json
+# Secrets & tokens (never commit)
+personal/credentials.json
+personal/client_secret_*.json
+personal/token.json
+web/*.db
+.env
+
+# Logs
+personal/*.log
+
+# Python
 .venv/
 __pycache__/
-*.log
