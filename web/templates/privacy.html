@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy — Inbox Labeler{% endblock %}
+{% block content %}
+<h1>Privacy Policy</h1>
+<p class="muted">Last updated: August 2026</p>
+
+<div class="card">
+  <strong>What this service does</strong>
+  <p>Inbox Labeler adds organizational labels to your Gmail inbox. That is the entire
+  service. We request the <code>gmail.modify</code> permission because it is the
+  narrowest Google permission that allows reading message metadata and applying labels.</p>
+</div>
+
+<div class="card">
+  <strong>What we access and process</strong>
+  <ul>
+    <li>For each email: the sender, the subject line, and the first 300 characters of
+        the message body. Nothing more is read.</li>
+    <li>This excerpt is sent to Anthropic's Claude API solely to decide which label
+        fits. Per Anthropic's API terms, this data is not used to train their models.</li>
+    <li>We never access attachments, and full message bodies are never stored,
+        transmitted elsewhere, or read by any human.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <strong>What we store</strong>
+  <ul>
+    <li>Your email address, your chosen category names/descriptions, and job progress
+        counters (how many emails were labeled).</li>
+    <li>An encrypted Gmail access token, kept only while your labeling job runs.
+        <strong>When your one-time job completes, we revoke our own access with Google
+        and delete the token.</strong> Subscribers' tokens are kept only while the
+        subscription is active and are revoked and deleted on cancellation.</li>
+    <li>We never store your emails — not bodies, not excerpts, not subjects.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <strong>What we never do</strong>
+  <ul>
+    <li>Delete, archive, forward, send, or mark your mail as read — we only add labels.</li>
+    <li>Sell, share, or transfer your data to anyone beyond the classification call
+        to Anthropic described above.</li>
+    <li>Use your Google data for advertising or for training AI models.</li>
+  </ul>
+  <p class="muted">Our use of Google user data complies with the
+  <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API
+  Services User Data Policy</a>, including its Limited Use requirements.</p>
+</div>
+
+<div class="card">
+  <strong>Your rights (GDPR)</strong>
+  <p>You can revoke our access at any time at
+  <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>,
+  and request deletion of your account record by emailing us. Labels already applied
+  remain in your Gmail (they're yours) and can be removed in Gmail's settings.</p>
+</div>
+
+<p><a href="/">← Back</a></p>
+{% endblock %}

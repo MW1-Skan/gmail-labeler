@@ -62,6 +62,11 @@ def landing(request: Request):
                                       {"price_eur": config.PRICE_EUR_CENTS / 100})
 
 
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request):
+    return templates.TemplateResponse(request, "privacy.html", {})
+
+
 @app.post("/checkout")
 def checkout():
     session = stripe.checkout.Session.create(
