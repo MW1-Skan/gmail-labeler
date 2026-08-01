@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Inbox Labeler{% endblock %}</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, "Segoe UI", sans-serif; margin: 0; background: #fafaf7; color: #1f2430; }
+  main { max-width: 640px; margin: 0 auto; padding: 3rem 1.25rem; }
+  h1 { font-size: 1.9rem; margin-bottom: .5rem; }
+  p.lead { color: #4a5265; font-size: 1.05rem; }
+  .btn { display: inline-block; background: #1f2430; color: #fff; border: 0; border-radius: 8px;
+         padding: .75rem 1.5rem; font-size: 1rem; cursor: pointer; text-decoration: none; }
+  .btn:hover { background: #333b4f; }
+  .card { background: #fff; border: 1px solid #e5e5df; border-radius: 10px; padding: 1.25rem; margin: 1rem 0; }
+  table { width: 100%; border-collapse: collapse; }
+  input[type=text] { width: 100%; box-sizing: border-box; padding: .45rem; border: 1px solid #d5d5cf;
+                     border-radius: 6px; font-size: .92rem; }
+  td { padding: .3rem .3rem; vertical-align: top; }
+  td.name { width: 30%; }
+  .muted { color: #7a8194; font-size: .85rem; }
+  progress { width: 100%; height: 14px; }
+</style>
+</head>
+<body>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

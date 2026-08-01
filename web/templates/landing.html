@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Your Gmail inbox, sorted.</h1>
+<p class="lead">Pay once, sign in with Google, and we label your entire past year of
+email into clean categories — Newsletters, Marketing, Orders, Admin papers, Finance,
+Security alerts and more. You can customize the categories before we start.</p>
+
+<div class="card">
+  <strong>€{{ "%.0f"|format(price_eur) }} — one time.</strong>
+  <p class="muted">Covers your last 365 days of inbox mail (up to 10,000 emails).
+  Nothing is archived, deleted, or marked read — we only add labels.</p>
+  <form method="post" action="/checkout">
+    <button class="btn" type="submit">Clean my inbox — €{{ "%.0f"|format(price_eur) }}</button>
+  </form>
+</div>
+
+<div class="card">
+  <strong>Privacy, plainly:</strong>
+  <ul class="muted">
+    <li>We never store your emails. Classification uses only the sender, subject, and
+        the first 300 characters of each message, sent to Anthropic's Claude API
+        (which does not train on this data).</li>
+    <li>The moment your inbox is labeled, our access to your Gmail is revoked and the
+        credentials are deleted.</li>
+    <li>Only labels are added. Your mail is never moved, deleted, forwarded, or read
+        by a human.</li>
+  </ul>
+</div>
+{% endblock %}

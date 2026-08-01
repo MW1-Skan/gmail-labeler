@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Labeling in progress{% endblock %}
+{% block content %}
+<h1 id="headline">Labeling your inbox…</h1>
+<div class="card">
+  <progress id="bar" max="100" value="0"></progress>
+  <p id="detail" class="muted">Preparing your job — this page updates automatically.
+  Feel free to close it and come back later; the work continues either way.</p>
+</div>
+
+<script>
+async function poll() {
+  const r = await fetch("/api/job");
+  if (!r.ok) return;
+  const j = await r.json();
+  const bar = document.getElementById("bar");
+  const detail = document.getElementById("detail");
+  const headline = document.getElementById("headline");
+  if (j.status === "done") {
+    headline.textContent = "Done — your inbox is labeled! ✅";
+    bar.value = 100;
+    detail.textContent = "Our access to your Gmail has been revoked and deleted. " +
+                         "Open Gmail to see your new labels.";
+    return;
+  }
+  if (j.status === "error") {
+    headline.textContent = "Something went wrong";
+    detail.textContent = "The job hit an error: " + (j.error || "unknown") +
+                         ". We'll look into it — you will not be charged twice.";
+    return;
+  }
+  if (j.total > 0) {
+    bar.value = Math.round(100 * j.done / j.total);
+    detail.textContent = j.done + " / " + j.total + " emails labeled…";
+  }
+  setTimeout(poll, 4000);
+}
+poll();
+</script>
+{% endblock %}

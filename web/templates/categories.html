@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Choose your categories{% endblock %}
+{% block content %}
+<h1>Your categories</h1>
+<p class="lead">These are the labels we'll create in your Gmail. Rename them, remove
+the ones you don't need, or add your own with a short description — the description is
+what the classifier uses to decide.</p>
+
+<form method="post" action="/categories">
+  <div class="card">
+    <table id="cats">
+      {% for name, desc in categories %}
+      {% if name != fallback %}
+      <tr>
+        <td class="name"><input type="text" name="name" value="{{ name }}" maxlength="40"></td>
+        <td><input type="text" name="description" value="{{ desc }}" maxlength="300"></td>
+        <td><button type="button" onclick="this.closest('tr').remove()">✕</button></td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </table>
+    <p class="muted">“{{ fallback }}” is always included as the fallback for anything
+    that doesn't fit. Max {{ max_categories }} categories.</p>
+    <button type="button" onclick="addRow()">+ Add category</button>
+  </div>
+  <button class="btn" type="submit">Start labeling my inbox</button>
+</form>
+
+<script>
+function addRow() {
+  const table = document.getElementById("cats");
+  if (table.rows.length >= {{ max_categories - 1 }}) return;
+  const row = table.insertRow();
+  row.innerHTML = `
+    <td class="name"><input type="text" name="name" placeholder="e.g. Kids" maxlength="40"></td>
+    <td><input type="text" name="description" placeholder="brief description, e.g. school and daycare mail" maxlength="300"></td>
+    <td><button type="button" onclick="this.closest('tr').remove()">✕</button></td>`;
+}
+</script>
+{% endblock %}
