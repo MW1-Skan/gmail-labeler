@@ -150,3 +150,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # The Agent SDK can leave the interpreter in a state where the final
+    # stdout flush during shutdown fails (exit code 120 under launchd) even
+    # though all work completed. Flush explicitly, then exit without running
+    # interpreter teardown so the exit code reflects the actual outcome.
+    logging.shutdown()
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(0)
