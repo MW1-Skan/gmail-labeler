@@ -24,8 +24,28 @@ a detailed Anthropic API cost analysis.
   Hobby plan forbids commercial use)
 - ✅ `web/.env` filled: generated `FERNET_KEY`/`SESSION_SECRET` + real Anthropic
   API key, Google OAuth web client, Stripe test keys (Phase A steps 1–3)
-- ⏳ **Next: Phase A steps 4–6** — local end-to-end test, then the cost/quality
-  benchmark on the owner's own mailbox
+- ✅ Automated end-to-end test suite `web/tests/` (14 tests, green; needs no
+  `.env`): full journey — checkout → signed Stripe webhook → OAuth → categories
+  editor → worker → Batch-API classify → Gmail labels → token revoke — with all
+  externals faked at the API boundary, plus a privacy guard (nothing beyond
+  sender/subject/300-char excerpt reaches the LLM) and the likely failure modes
+  (webhook secret mismatch → 400, consent cancelled, Gmail checkbox unticked)
+- ✅ Real bugs found by the suite & fixed: stripe-python v15 `StripeObject.get()`
+  crashes in the webhook handler AND in `/start` right after payment;
+  `InsecureTransportError` killing the OAuth callback on localhost (now
+  auto-relaxed for loopback only); Google "Scope has changed" exception (now
+  relaxed + explicit gmail.modify grant check with a friendly retry page);
+  consent-cancel/expired-code 500s (now friendly pages); status-page progress
+  poll dying permanently on one transient error; proxy-proof OAuth callback URL
+  (Phase B cloudflared readiness); `secure` session cookie under https
+- ✅ Step-6 tooling: `web/benchmark.py` — read-only cost/quality benchmark of the
+  owner's mailbox vs existing labels through the exact production classify path,
+  reporting real token spend + per-mailbox extrapolation (unit-tested math)
+- ✅ Runbook `web/TESTING.md`: click-by-click manual flow + symptom→cause→fix
+  debug table + benchmark instructions
+- ⏳ **Next: Phase A steps 4–6, the parts only the owner can do on the Mac** —
+  run the real browser flow with the secondary account (step 5) and the real
+  benchmark (step 6), following `web/TESTING.md`
 
 ---
 
@@ -57,26 +77,33 @@ a detailed Anthropic API cost analysis.
      `stripe listen --forward-to localhost:8000/stripe-webhook` — copy the printed
      `whsec_...` into `web/.env` as `STRIPE_WEBHOOK_SECRET`.
 
-4. **Run it** (two terminals from the repo root)
+4. **Run it** (two terminals from the repo root) — ✅ boot verified + automated
+   E2E green (`.venv/bin/python -m pytest web/tests/ -q`); see `web/TESTING.md` §1
    ```bash
    .venv/bin/uvicorn web.app:app --reload
    .venv/bin/python web/worker.py
    ```
 
-5. **Walk the full customer flow** with the secondary Google account:
+5. **Walk the full customer flow** (⏳ owner, on the Mac — guided step-by-step
+   with a debug table in `web/TESTING.md` §2–3) with the secondary Google account:
    landing → pay with test card `4242 4242 4242 4242` → Google OAuth (expect the
    "unverified app" warning — click Advanced → continue) → edit categories (try adding
    a custom one) → watch the progress page → check labels in that account's Gmail →
    verify the app is gone from myaccount.google.com/permissions (token revoked).
 
 6. **Cost + quality benchmark on your own mailbox** — the most important test.
-   Go through the flow with your main account. Since your mail is already labeled by
-   the personal labeler, either compare spot-checks on new mail, or temporarily point
-   `BACKFILL_DAYS` at a window and compare Haiku's decisions against your existing
-   labels. Then read the actual spend in the Anthropic console → this gives your
-   **real cost-per-mailbox number** (expected: well under €1 — see cost section).
-   If Haiku misclassifies too much, set `MODEL=claude-sonnet-4-5`-class model in
-   `.env` and re-check both quality and cost (~3× Haiku).
+   (⏳ owner, on the Mac — now one command, `web/TESTING.md` §4:)
+   ```bash
+   .venv/bin/python web/benchmark.py --report web/benchmark_report.md
+   ```
+   Read-only: samples your already-labeled mail (ground truth = existing labels),
+   classifies via the exact production path (Haiku + Batch API), applies nothing,
+   and prints agreement per category, confusions, disagreements to eyeball, real
+   tokens/email and the extrapolated per-mailbox cost vs the table below. Then
+   cross-check billed spend in the Anthropic console → your **real
+   cost-per-mailbox number** (expected: well under €1 — see cost section).
+   If Haiku misclassifies too much, rerun with `--model claude-sonnet-4-5` and
+   compare quality + cost (~3× Haiku) before changing `MODEL` in `.env`.
 
 ### Phase B — Deploy publicly (a weekend, ~€15/mo running costs)
 
@@ -147,8 +174,9 @@ customer; `PRICE_EUR_CENTS`, `MODEL`, `BACKFILL_DAYS` are all `.env` knobs.
 
 ## Verification (per phase)
 
-- **A:** full test-mode flow with secondary account → labels in Gmail, token revoked,
-  Anthropic console shows spend matching the table above (±30%).
+- **A:** automated suite green (✅ done, `web/tests/`, 14 tests) + full test-mode
+  flow with secondary account → labels in Gmail, token revoked, Anthropic console
+  shows spend matching the table above (±30%) + `benchmark.py` report saved.
 - **B:** same flow on the live domain over HTTPS; Stripe live-mode €5 charge to
   yourself; webhook delivery shows 200 in the Stripe dashboard.
 - **C:** ≥1 stranger completes payment→labels without hand-holding; support requests

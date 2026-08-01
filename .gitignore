@@ -9,6 +9,9 @@ web/*.db
 personal/*.log
 web/*.log
 
+# Benchmark output (contains real senders/subjects)
+web/benchmark_report*.md
+
 # Python
 .venv/
 __pycache__/
