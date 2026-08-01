@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.skan.inbox-labeler-worker</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/skan/Documents/Projects/gmail-labeler/.venv/bin/python</string>
+        <string>/Users/skan/Documents/Projects/gmail-labeler/web/worker.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/skan/Documents/Projects/gmail-labeler</string>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/skan/Documents/Projects/gmail-labeler/web/worker.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/skan/Documents/Projects/gmail-labeler/web/worker.err.log</string>
+</dict>
+</plist>

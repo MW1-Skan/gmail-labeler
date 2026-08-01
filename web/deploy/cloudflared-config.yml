@@ -1,0 +1,10 @@
+# Cloudflare Tunnel config — copy to ~/.cloudflared/config.yml after creating the
+# tunnel (see deploy/README.md). Replace TUNNEL_ID and yourdomain.com.
+
+tunnel: TUNNEL_ID
+credentials-file: /Users/skan/.cloudflared/TUNNEL_ID.json
+
+ingress:
+  - hostname: yourdomain.com
+    service: http://localhost:8000
+  - service: http_status:404

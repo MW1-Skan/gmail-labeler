@@ -44,6 +44,11 @@ verify the app disappears from https://myaccount.google.com/permissions (token r
   finishes (kept only for active subscribers).
 - Labels are only added — never archive, delete, mark read, or forward.
 
+## Deployment (Mac mini, free)
+
+See `deploy/README.md` — launchd plists for the app + worker and a Cloudflare Tunnel
+config expose the mini as `https://yourdomain.com` for the cost of the domain alone.
+
 ## Path to public launch (when validation succeeds)
 
 1. Google restricted-scope verification for `gmail.modify`: privacy policy page,
