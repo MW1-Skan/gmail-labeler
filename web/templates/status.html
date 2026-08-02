@@ -10,9 +10,15 @@
 
 <script>
 async function poll() {
-  const r = await fetch("/api/job");
-  if (!r.ok) return;
-  const j = await r.json();
+  let j;
+  try {
+    const r = await fetch("/api/job");
+    if (!r.ok) throw new Error(r.status);
+    j = await r.json();
+  } catch (e) {           // transient hiccup (server restart, network) — keep polling
+    setTimeout(poll, 4000);
+    return;
+  }
   const bar = document.getElementById("bar");
   const detail = document.getElementById("detail");
   const headline = document.getElementById("headline");

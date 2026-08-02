@@ -13,6 +13,14 @@ load_dotenv(WEB_DIR / ".env")
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 DB_PATH = Path(os.environ.get("DB_PATH", WEB_DIR / "labeler.db"))
 
+# oauthlib refuses plain-http OAuth (fine in prod, fatal for localhost testing) and
+# raises "Scope has changed" when Google normalizes/reorders the granted scopes.
+# Local http is allowed only for loopback addresses; scope relaxation is always on
+# (the callback verifies the Gmail scope itself and re-prompts if it was unchecked).
+if BASE_URL.startswith(("http://localhost", "http://127.")):
+    os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
+os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
+
 # Anthropic — API billing (NOT the personal subscription)
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 MODEL = os.environ.get("MODEL", "claude-haiku-4-5")
@@ -21,7 +29,8 @@ MODEL = os.environ.get("MODEL", "claude-haiku-4-5")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 OAUTH_REDIRECT_URI = f"{BASE_URL}/oauth/callback"
-GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.modify",
+GMAIL_MODIFY_SCOPE = "https://www.googleapis.com/auth/gmail.modify"
+GMAIL_SCOPES = [GMAIL_MODIFY_SCOPE,
                 "https://www.googleapis.com/auth/userinfo.email", "openid"]
 
 # Stripe

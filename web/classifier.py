@@ -44,8 +44,11 @@ def _result_text(message) -> str | None:
 
 
 def classify_batch_api(categories: list[tuple[str, str]], groups: list[list[dict]],
-                       on_progress=None) -> list[list[str]]:
-    """Classify all groups via the Batches API. Returns one category list per group."""
+                       on_progress=None, usage_out: list | None = None) -> list[list[str]]:
+    """Classify all groups via the Batches API. Returns one category list per group.
+
+    If usage_out is a list, (input_tokens, output_tokens) per succeeded request is
+    appended to it — used by the benchmark to report real cost."""
     client = _client()
     system_prompt = build_system_prompt(categories)
     names = category_names(categories)
@@ -68,6 +71,9 @@ def classify_batch_api(categories: list[tuple[str, str]], groups: list[list[dict
     for result in client.messages.batches.results(batch.id):
         if result.result.type == "succeeded":
             by_id[result.custom_id] = _result_text(result.result.message)
+            if usage_out is not None:
+                usage = result.result.message.usage
+                usage_out.append((usage.input_tokens, usage.output_tokens))
         else:
             log.warning("Batch item %s: %s", result.custom_id, result.result.type)
             by_id[result.custom_id] = None
@@ -76,7 +82,8 @@ def classify_batch_api(categories: list[tuple[str, str]], groups: list[list[dict
             for i, group in enumerate(groups)]
 
 
-def classify_sync(categories: list[tuple[str, str]], groups: list[list[dict]]) -> list[list[str]]:
+def classify_sync(categories: list[tuple[str, str]], groups: list[list[dict]],
+                  usage_out: list | None = None) -> list[list[str]]:
     """Classify groups with synchronous calls — for small daily sweeps."""
     client = _client()
     system_prompt = build_system_prompt(categories)
@@ -86,6 +93,8 @@ def classify_sync(categories: list[tuple[str, str]], groups: list[list[dict]]) -
         try:
             message = client.messages.create(**_params(system_prompt, group))
             raw = _result_text(message)
+            if usage_out is not None:
+                usage_out.append((message.usage.input_tokens, message.usage.output_tokens))
         except anthropic.APIError as e:
             log.warning("Sync classify failed (%s); falling back", e)
             raw = None

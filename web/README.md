@@ -12,6 +12,8 @@ worker labels the past 365 days via the Anthropic Batch API → Gmail access rev
 | `classifier.py` | Anthropic API classification (paid, per-token — separate from the personal labeler's subscription auth) |
 | `db.py` | SQLite: users, per-user categories, jobs, Fernet-encrypted Gmail tokens |
 | `config.py` | Env-driven config, loaded from `web/.env` |
+| `benchmark.py` | Read-only cost/quality benchmark of the owner's mailbox (ROADMAP step 6) |
+| `tests/` | Automated E2E suite — full pipeline with Stripe/Google/Gmail/Anthropic faked |
 
 ## Setup
 
@@ -30,11 +32,20 @@ worker labels the past 365 days via the Anthropic Batch API → Gmail access rev
 5. Local Stripe webhook: `stripe listen --forward-to localhost:8000/stripe-webhook`
    (copy the printed `whsec_...` into `.env`).
 
-## Test flow (Stripe test mode)
+## Testing
 
-Landing → pay with card `4242 4242 4242 4242` → Google OAuth with a **test user**
-account → adjust categories → job runs → labels appear in that account's Gmail →
-verify the app disappears from https://myaccount.google.com/permissions (token revoked).
+Automated (no `.env`, no network — all externals faked):
+
+```bash
+.venv/bin/pip install -r web/requirements-dev.txt
+.venv/bin/python -m pytest web/tests/ -q
+```
+
+Manual test-mode flow — follow **`web/TESTING.md`** (click-by-click runbook with a
+debug table): landing → pay with card `4242 4242 4242 4242` → Google OAuth with a
+**test user** account → adjust categories → job runs → labels appear in that
+account's Gmail → verify the app disappears from
+https://myaccount.google.com/permissions (token revoked).
 
 ## Privacy invariants (keep true — they're the product's trust story)
 

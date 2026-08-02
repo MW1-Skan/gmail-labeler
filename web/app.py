@@ -51,7 +51,8 @@ def get_session(request: Request) -> dict:
 
 def set_session(response, data: dict):
     response.set_cookie("session", _signer().dumps(data),
-                        httponly=True, samesite="lax", max_age=7 * 24 * 3600)
+                        httponly=True, samesite="lax", max_age=7 * 24 * 3600,
+                        secure=config.BASE_URL.startswith("https"))
 
 
 # --- landing & payment ----------------------------------------------------
@@ -91,10 +92,13 @@ async def stripe_webhook(request: Request):
     sig = request.headers.get("stripe-signature", "")
     try:
         event = stripe.Webhook.construct_event(payload, sig, config.STRIPE_WEBHOOK_SECRET)
-    except (ValueError, stripe.error.SignatureVerificationError):
+    except (ValueError, stripe.SignatureVerificationError):
         return JSONResponse({"error": "invalid signature"}, status_code=400)
     if event["type"] == "checkout.session.completed":
-        email = event["data"]["object"].get("customer_details", {}).get("email")
+        # Read from the signature-verified raw payload: plain dicts, immune to
+        # StripeObject API differences across stripe-python versions.
+        obj = json.loads(payload)["data"]["object"]
+        email = (obj.get("customer_details") or {}).get("email")
         if email:
             db.mark_paid(email)
     return {"ok": True}
@@ -106,7 +110,9 @@ def start(request: Request, session_id: str):
     checkout_session = stripe.checkout.Session.retrieve(session_id)
     if checkout_session.payment_status != "paid":
         return RedirectResponse("/", status_code=303)
-    email = (checkout_session.customer_details or {}).get("email")
+    # attribute access: StripeObject stopped being a dict in stripe-python v15
+    details = checkout_session.customer_details
+    email = details.email if details else None
     if email:
         db.mark_paid(email)
     response = RedirectResponse("/oauth/start", status_code=303)
@@ -142,14 +148,38 @@ def oauth_start(request: Request):
     return response
 
 
+def _oauth_retry_page(message: str) -> HTMLResponse:
+    return HTMLResponse(
+        f"<p>{message}</p><p><a href='/oauth/start'>Connect your Google account again</a></p>",
+        status_code=400)
+
+
 @app.get("/oauth/callback")
 def oauth_callback(request: Request):
     session = get_session(request)
     if not session.get("paid") or "oauth_state" not in session:
         return RedirectResponse("/", status_code=303)
+    if request.query_params.get("error"):  # user clicked Cancel on the consent screen
+        return _oauth_retry_page("Google sign-in was cancelled, so we have no access "
+                                 "to your mailbox. Your payment is still valid.")
     flow = _google_flow()
-    flow.fetch_token(authorization_response=str(request.url), state=session["oauth_state"])
+    # Rebuild the callback URL on the configured base: behind a proxy/tunnel (and in
+    # plain local dev) request.url is http://, which oauthlib rejects and Google may
+    # consider a redirect-URI mismatch.
+    authorization_response = f"{config.OAUTH_REDIRECT_URI}?{request.url.query}"
+    try:
+        flow.fetch_token(authorization_response=authorization_response,
+                         state=session["oauth_state"])
+    except Exception as e:
+        log.warning("OAuth token exchange failed: %s", e)
+        return _oauth_retry_page("Google sign-in failed or the link expired. "
+                                 "Your payment is still valid — please try again.")
     creds = flow.credentials
+    if config.GMAIL_MODIFY_SCOPE not in (creds.scopes or []):
+        return _oauth_retry_page(
+            "The Gmail permission was not granted on the consent screen — we need it "
+            "to create your labels (we only ever add labels, never delete or send "
+            "anything). Please tick the Gmail checkbox this time.")
 
     userinfo = http.get("https://www.googleapis.com/oauth2/v2/userinfo",
                         headers={"Authorization": f"Bearer {creds.token}"},
