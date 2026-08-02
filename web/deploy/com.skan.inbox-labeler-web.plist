@@ -7,7 +7,7 @@
     <string>com.skan.inbox-labeler-web</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/skan/Documents/Projects/gmail-labeler/.venv/bin/uvicorn</string>
+        <string>/Users/skan/Projects/gmail-labeler/.venv/bin/uvicorn</string>
         <string>web.app:app</string>
         <string>--host</string>
         <string>127.0.0.1</string>
@@ -15,14 +15,14 @@
         <string>8000</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler</string>
+    <string>/Users/skan/Projects/gmail-labeler</string>
     <key>KeepAlive</key>
     <true/>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler/web/server.log</string>
+    <string>/Users/skan/Projects/gmail-labeler/web/server.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler/web/server.err.log</string>
+    <string>/Users/skan/Projects/gmail-labeler/web/server.err.log</string>
 </dict>
 </plist>

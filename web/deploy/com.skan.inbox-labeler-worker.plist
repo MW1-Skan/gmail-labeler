@@ -7,18 +7,18 @@
     <string>com.skan.inbox-labeler-worker</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/skan/Documents/Projects/gmail-labeler/.venv/bin/python</string>
-        <string>/Users/skan/Documents/Projects/gmail-labeler/web/worker.py</string>
+        <string>/Users/skan/Projects/gmail-labeler/.venv/bin/python</string>
+        <string>/Users/skan/Projects/gmail-labeler/web/worker.py</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler</string>
+    <string>/Users/skan/Projects/gmail-labeler</string>
     <key>KeepAlive</key>
     <true/>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler/web/worker.log</string>
+    <string>/Users/skan/Projects/gmail-labeler/web/worker.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/skan/Documents/Projects/gmail-labeler/web/worker.err.log</string>
+    <string>/Users/skan/Projects/gmail-labeler/web/worker.err.log</string>
 </dict>
 </plist>

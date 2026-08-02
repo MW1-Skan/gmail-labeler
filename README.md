@@ -17,7 +17,7 @@ messages are skipped, so every run is safe to repeat.
 ## Setup
 
 ```bash
-cd /Users/skan/Documents/Projects/gmail-labeler
+cd /Users/skan/Projects/gmail-labeler
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt        # shared + personal deps
 .venv/bin/pip install -r web/requirements.txt    # only if working on the web product
