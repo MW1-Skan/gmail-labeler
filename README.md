@@ -70,6 +70,23 @@ launchctl load ~/Library/LaunchAgents/com.skan.gmail-labeler.plist    # install
 launchctl unload ~/Library/LaunchAgents/com.skan.gmail-labeler.plist  # remove
 ```
 
+### Watchdog (silent-failure alerting)
+
+A second launchd job checks every 30 min that `labeler.log` was written within the
+last 45 min (the labeler logs on every run, even idle ones). If not, it sends a macOS
+notification with cause-specific advice (dead Gmail token, job unloaded, …), re-nags
+at most every 4h, and logs to `personal/watchdog.log`. Detection only — it never
+restarts or modifies anything. If the repo is not at `/Users/skan/Projects/gmail-labeler`,
+fix the two paths in the plist first.
+
+```bash
+cp personal/com.skan.gmail-labeler-watchdog.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.skan.gmail-labeler-watchdog.plist
+```
+
+Note: Google OAuth consent screen must stay **Published to production** — Testing
+mode expires all refresh tokens after 7 days and takes the labeler down with them.
+
 # Web product (`web/`)
 
 The commercial version: user pays €5 (Stripe), authenticates with Google, optionally

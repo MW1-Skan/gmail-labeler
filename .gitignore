@@ -8,6 +8,7 @@ web/*.db
 # Logs
 personal/*.log
 web/*.log
+personal/.watchdog-*
 
 # Benchmark output (contains real senders/subjects)
 web/benchmark_report*.md

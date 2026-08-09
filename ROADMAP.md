@@ -43,6 +43,20 @@ a detailed Anthropic API cost analysis.
   reporting real token spend + per-mailbox extrapolation (unit-tested math)
 - ✅ Runbook `web/TESTING.md`: click-by-click manual flow + symptom→cause→fix
   debug table + benchmark instructions
+- ⚠️ **Ops incidents (Aug 2 + Aug 8), diagnosed & hardened:**
+  - Aug 2: disk-full → iCloud "Optimize Mac Storage" evicted `.venv` files under
+    `~/Documents` → labeler hung at import, both logs silent. Fixed: repo moved
+    out of iCloud scope (`~/Projects`), venv rebuilt.
+  - Aug 8: setting the **shared** GCP project's consent screen to **Testing**
+    (step 2) gave every refresh token a 7-day expiry — the personal labeler's
+    token died exactly a week later (`invalid_grant` on refresh, crash before
+    the first log line). Fix: consent screen **Published to production**
+    (unverified warning is fine) + token re-consent; long-term see Phase B.
+  - Hardening: `personal/watchdog.sh` + `com.skan.gmail-labeler-watchdog.plist`
+    — separate launchd job, checks every 30 min that `labeler.log` moved within
+    45 min; macOS notification with cause-specific fix advice (detects dead
+    token in err.log, unloaded job), re-nags every 4h, recovery notice. Additive
+    only — labeler.py and its plist untouched.
 - ⏳ **Next: Phase A steps 4–6, the parts only the owner can do on the Mac** —
   run the real browser flow with the secondary account (step 5) and the real
   benchmark (step 6), following `web/TESTING.md`
@@ -69,6 +83,11 @@ a detailed Anthropic API cost analysis.
    - OAuth consent screen → Audience: add **Test users**: your own Gmail + a secondary
      Google account (the "fake customer"). Testing mode = max 100 users, no
      verification needed.
+   - ⚠️ **Learned Aug 8:** Testing mode puts a **7-day expiry on ALL refresh tokens
+     project-wide** — it killed the personal labeler, which shares this project. Keep
+     the consent screen **Published to production** instead (unverified warning +
+     "Advanced → continue" works the same for testers, tokens don't expire). The clean
+     fix — a dedicated GCP project for the web product — is a Phase B step.
 
 3. **Stripe (test mode)** (~15 min)
    - dashboard.stripe.com → create account → Developers → API keys → copy the
@@ -110,7 +129,10 @@ a detailed Anthropic API cost analysis.
 7. Buy a domain (~€10/yr) and a small VPS (Hetzner ~€4–5/mo, or fly.io free tier).
 8. Deploy: clone repo, venv, `web/.env` with `BASE_URL=https://yourdomain`,
    run uvicorn + worker under systemd, HTTPS via Caddy (2-line config).
-9. Update Google: add `https://yourdomain/oauth/callback` as a redirect URI.
+9. Update Google: add `https://yourdomain/oauth/callback` as a redirect URI — and do
+   it in a **new, dedicated GCP project** for the web product (own OAuth client +
+   consent screen): isolates the personal labeler's project for good (see the Aug 8
+   incident) and scopes the eventual CASA verification (Phase D) to the web app only.
 10. Stripe: Dashboard → Webhooks → add `https://yourdomain/stripe-webhook` endpoint
     (new `whsec_` for prod); switch to **live** API keys when ready to charge.
 11. Write the privacy-policy page (required by Google even in testing; the landing
