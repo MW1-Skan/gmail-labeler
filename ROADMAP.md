@@ -57,9 +57,19 @@ a detailed Anthropic API cost analysis.
     45 min; macOS notification with cause-specific fix advice (detects dead
     token in err.log, unloaded job), re-nags every 4h, recovery notice. Additive
     only — labeler.py and its plist untouched.
-- ⏳ **Next: Phase A steps 4–6, the parts only the owner can do on the Mac** —
-  run the real browser flow with the secondary account (step 5) and the real
-  benchmark (step 6), following `web/TESTING.md`
+- ✅ Incident resolution (Aug 9): consent screen **published to production**
+  (root cause of the weekly token death), personal labeler re-minted a
+  non-expiring token, watchdog installed and live on the Mac
+- ⏸️ **WEB PRODUCT ON STANDBY (owner decision, 2026-08-09)** — other priorities.
+  Clean pause: nothing deployed, nothing billing (Stripe test mode, no domain,
+  no VPS; the prepaid Anthropic credit sits unused — credits can carry an
+  expiry date, the console shows it). The personal labeler is unaffected and
+  keeps running.
+  **Resume point** (~1 evening, <€2 API spend): Phase A steps 5–6 exactly as
+  scripted in `web/TESTING.md` — pull the branch → `pytest web/tests/` →
+  3 terminals (uvicorn / worker / `stripe listen`) → §2 customer flow with the
+  secondary Google account → §4 benchmark (`web/benchmark.py`). Heavy costs
+  (Phase B hosting, Phase D CASA) stay gated on validation, as planned.
 
 ---
 
