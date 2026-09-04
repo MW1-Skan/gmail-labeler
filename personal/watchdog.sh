@@ -19,6 +19,7 @@ LOG="$REPO_ROOT/personal/labeler.log"
 ERR="$REPO_ROOT/personal/labeler.err.log"
 WLOG="$REPO_ROOT/personal/watchdog.log"
 MARKER="$REPO_ROOT/personal/.watchdog-last-notify"
+LLM_MARKER="$REPO_ROOT/personal/.watchdog-llm-notify"
 
 STALE_SECONDS=2700        # 45 min = 3 missed 15-minute runs
 RENOTIFY_SECONDS=14400    # nag again at most every 4h while still broken
@@ -50,6 +51,21 @@ if [ "$age" -lt "$STALE_SECONDS" ]; then
         rm -f "$MARKER"
         wlog "recovered: labeler is running again"
         notify "Recovered — labeler is running again."
+    fi
+    # Quality tripwire: alive but degraded — when Claude calls fail (e.g. lapsed
+    # subscription) classify_batch logs a WARNING per batch and every email gets
+    # the "Other" fallback label. A liveness check alone can never catch this.
+    if [ "$(tail -40 "$LOG" 2>/dev/null | grep -c 'LLM call failed')" -ge 3 ]; then
+        wlog "DEGRADED: repeated 'LLM call failed' — mail is being labeled Other"
+        if [ $(( now - $(mtime_of "$LLM_MARKER") )) -ge "$RENOTIFY_SECONDS" ]; then
+            notify "Claude calls failing — mail is being labeled 'Other'. Check subscription / 'claude' login, then relabel the gap (see README)."
+            touch "$LLM_MARKER"
+            wlog "notification fired"
+        fi
+    elif [ -f "$LLM_MARKER" ]; then
+        rm -f "$LLM_MARKER"
+        wlog "recovered: Claude calls succeeding again"
+        notify "Recovered — Claude classification working again."
     fi
     exit 0
 fi

@@ -75,9 +75,20 @@ launchctl unload ~/Library/LaunchAgents/com.skan.gmail-labeler.plist  # remove
 A second launchd job checks every 30 min that `labeler.log` was written within the
 last 45 min (the labeler logs on every run, even idle ones). If not, it sends a macOS
 notification with cause-specific advice (dead Gmail token, job unloaded, …), re-nags
-at most every 4h, and logs to `personal/watchdog.log`. Detection only — it never
-restarts or modifies anything. If the repo is not at `/Users/skan/Projects/gmail-labeler`,
+at most every 4h, and logs to `personal/watchdog.log`. It also catches the
+alive-but-degraded state where Claude calls fail (e.g. lapsed subscription) and every
+mail silently gets the `Other` fallback label. Detection only — it never restarts or
+modifies anything. If the repo is not at `/Users/skan/Projects/gmail-labeler`,
 fix the two paths in the plist first.
+
+Recovering from a degraded stretch (mail labeled `Other` while Claude calls failed):
+fix the cause (subscription active, `claude` logged in), then in Gmail search
+`label:Other after:YYYY/MM/DD` → select all matching → remove the label `Other`,
+and reclassify the window in one run:
+
+```bash
+.venv/bin/python personal/labeler.py --apply --days 30 --max 500
+```
 
 ```bash
 cp personal/com.skan.gmail-labeler-watchdog.plist ~/Library/LaunchAgents/

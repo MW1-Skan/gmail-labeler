@@ -57,6 +57,11 @@ a detailed Anthropic API cost analysis.
     45 min; macOS notification with cause-specific fix advice (detects dead
     token in err.log, unloaded job), re-nags every 4h, recovery notice. Additive
     only — labeler.py and its plist untouched.
+  - Sep 4: a month-long lapsed Claude subscription had every mail falling back
+    to `Other` — alive-but-degraded, invisible to the liveness check. Watchdog
+    gained a quality tripwire (repeated `LLM call failed` in the recent log →
+    notification); recovery recipe documented in README (bulk-unlabel `Other`,
+    one `--apply --days N` run).
 - ✅ Incident resolution (Aug 9): consent screen **published to production**
   (root cause of the weekly token death), personal labeler re-minted a
   non-expiring token, watchdog installed and live on the Mac
