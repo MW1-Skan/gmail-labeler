@@ -63,6 +63,19 @@ automatically until done:
 personal/backfill.sh 2025/10/05 500   # [AFTER_DATE] [CHUNK_SIZE]
 ```
 
+## Relabel `Other` (cleanup after an outage)
+
+Older versions filed mail under `Other` whenever classification failed. This re-classifies
+every email labeled `Other` since a date: a real category gets its label and loses `Other`
+(the one case where a label is removed); `Other` again leaves the email as it is. Mail that
+also has a real category label is skipped. Unclassified emails (e.g. usage limit hit
+mid-run) keep `Other`; re-run the same command later to retry them.
+
+```bash
+.venv/bin/python personal/relabel_other.py --after 2026/10/01 --max 30   # dry-run preview
+.venv/bin/python personal/relabel_other.py --after 2026/10/01 --apply
+```
+
 ## Scheduling (macOS launchd)
 
 `personal/com.skan.gmail-labeler.plist` runs `--apply` every 15 minutes (and at
