@@ -9,20 +9,23 @@ from shared.categories import FALLBACK_CATEGORY
 log = logging.getLogger("labeler")
 
 
-def parse_categories(raw: str | None, n: int, valid_names: list[str]) -> list[str]:
-    """Parse the LLM's JSON array; invalid entries fall back to the Other category."""
+def parse_categories(raw: str | None, n: int, valid_names: list[str],
+                     on_failure: str | None = FALLBACK_CATEGORY) -> list[str | None]:
+    """Parse the LLM's JSON array; invalid entries fall back to the Other category.
+
+    A response with no array at all (empty, or error text instead of an answer)
+    yields `on_failure` for every email: Other by default, or None to leave those
+    emails unlabeled so a later run can retry them."""
     if not raw:
-        log.warning("Empty LLM response; falling back to %s for %d emails",
-                    FALLBACK_CATEGORY, n)
-        return [FALLBACK_CATEGORY] * n
+        log.warning("Empty LLM response for %d emails", n)
+        return [on_failure] * n
     match = re.search(r"\[.*\]", raw, re.DOTALL)
     try:
         parsed = json.loads(match.group(0) if match else raw)
         assert isinstance(parsed, list)
     except (json.JSONDecodeError, AssertionError):
-        log.warning("Unparseable LLM response %r; falling back to %s",
-                    raw[:200], FALLBACK_CATEGORY)
-        return [FALLBACK_CATEGORY] * n
+        log.warning("Unparseable LLM response %r", raw[:200])
+        return [on_failure] * n
     out = []
     for i in range(n):
         cat = parsed[i] if i < len(parsed) else None

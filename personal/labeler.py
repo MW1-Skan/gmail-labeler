@@ -66,20 +66,25 @@ def check_no_api_key():
 
 async def _classify_async(emails: list[dict]) -> str | None:
     options = ClaudeAgentOptions(system_prompt=SYSTEM_PROMPT, max_turns=1, tools=[])
-    result_text = None
+    result = None
     async for message in query(prompt=build_user_prompt(emails), options=options):
         if isinstance(message, ResultMessage):
-            result_text = message.result
-    return result_text
+            result = message
+    if result and result.is_error:  # e.g. subscription cut off: result is the error text
+        raise RuntimeError(result.result or result.subtype)
+    return result.result if result else None
 
 
-def classify_batch(emails: list[dict]) -> list[str]:
+def classify_batch(emails: list[dict]) -> list[str | None]:
+    """One category per email, or None where the LLM gave no usable answer (call
+    failed, e.g. subscription cut off, or unparseable reply). Those emails stay
+    unlabeled instead of being filed under Other, so a later run retries them."""
     try:
         raw = asyncio.run(_classify_async(emails))
     except Exception as e:  # LLM call failed entirely
-        log.warning("LLM call failed (%s); falling back to Other for %d emails", e, len(emails))
-        return parse_categories(None, len(emails), CATEGORIES)
-    return parse_categories(raw, len(emails), CATEGORIES)
+        log.warning("LLM call failed (%s) for %d emails", e, len(emails))
+        return [None] * len(emails)
+    return parse_categories(raw, len(emails), CATEGORIES, on_failure=None)
 
 
 def parse_args():
@@ -88,7 +93,10 @@ def parse_args():
                    help="Classify but touch nothing in Gmail (default).")
     p.add_argument("--apply", action="store_true",
                    help="Actually apply labels in Gmail.")
-    p.add_argument("--days", type=int, default=3, help="Lookback window in days (default 3).")
+    # Wide enough that mail left unlabeled during a multi-day subscription outage
+    # is still in the window when classification works again. Cheap: the query
+    # excludes already-labeled mail, so a normal run only sees new messages.
+    p.add_argument("--days", type=int, default=30, help="Lookback window in days (default 30).")
     p.add_argument("--max", type=int, default=50, dest="max_msgs",
                    help="Max messages processed per run (default 50).")
     p.add_argument("--backfill", action="store_true",
@@ -133,16 +141,23 @@ def main():
         return
 
     to_apply: dict[str, list[str]] = {}  # category -> message ids
+    unclassified = 0
     for start in range(0, len(emails), BATCH_SIZE):
         batch = emails[start:start + BATCH_SIZE]
         categories = classify_batch(batch)
         for e, cat in zip(batch, categories):
+            if cat is None:
+                unclassified += 1
+                continue
             log.info("[%-10s] %s — %s", cat, e["sender"][:45], e["subject"][:60])
             to_apply.setdefault(cat, []).append(e["id"])
+    if unclassified:
+        log.warning("%d email(s) left unlabeled (classification failed); "
+                    "the next run will retry them", unclassified)
 
     if not apply_mode:
         log.info("Dry-run: no labels applied. Re-run with --apply to label %d email(s).",
-                 len(emails))
+                 len(emails) - unclassified)
         return
 
     apply_labels(service, to_apply, label_ids)

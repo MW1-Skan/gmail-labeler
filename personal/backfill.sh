@@ -33,12 +33,12 @@ while :; do
         exit 0
     fi
 
-    fails=$(grep -c "LLM call failed" "$tmp")
+    unlabeled=$(grep -c "left unlabeled" "$tmp")
     rm -f "$tmp"
-    if [ "$fails" -gt 0 ]; then
-        # Likely a subscription rate limit. Those emails were labeled Other and
-        # won't be revisited; pause so the rest of the backfill isn't mislabeled.
-        echo "!!! $fails failed LLM call(s) this run — pausing 60 minutes before continuing."
+    if [ "$unlabeled" -gt 0 ]; then
+        # Likely a subscription rate limit. Those emails stay unlabeled and the
+        # next run retries them; pause so it doesn't hit the same limit at once.
+        echo "!!! Classification failed for some emails this run — pausing 60 minutes before retrying."
         sleep 3600
     else
         sleep 5

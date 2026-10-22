@@ -45,9 +45,14 @@ First run opens a browser for the Gmail OAuth consent flow; the token is saved t
 .venv/bin/python personal/labeler.py --apply
 
 # Options
-#   --days N   lookback window (default 3)
+#   --days N   lookback window (default 30)
 #   --max N    max messages per run (default 50)
 ```
+
+If classification fails (LLM call error, e.g. Claude subscription cut off or usage limit
+hit), the affected emails are left unlabeled rather than filed under `Other`, and later
+runs retry them. The 30-day window means mail from an outage of up to 30 days still gets
+labeled once the subscription is back.
 
 ## Backfill (one-time historical labeling)
 
